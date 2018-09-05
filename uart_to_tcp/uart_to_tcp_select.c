@@ -78,15 +78,19 @@ int main()
 	
 
 	//构造请求数据
-    unsigned short crc16 = CRC_Compute(req_buf,6);
-	req_buf[0]=HEAD;
+  	req_buf[0]=HEAD;
 	req_buf[1]=LEN;
 	req_buf[2]=OPTION;
 	req_buf[3]=CMD;
 	req_buf[4]=DATA1;
 	req_buf[5]=DATA2;
-	req_buf[6] = crc16;
-    req_buf[7] = crc16>>8;
+
+	unsigned short crc16 = CRC_Compute(req_buf,(unsigned char)6);
+	req_buf[6] = (char)crc16;
+    req_buf[7] = (char)(crc16>>8);
+
+	printf("req_buf[6] = %x\n",req_buf[6]);
+	printf("req_buf[7] = %x\n",req_buf[7]);
 	req_buf[8]=TAIL;
     
 	if((fd = open(uart3, O_RDWR|O_NOCTTY|O_NONBLOCK) )<0)   // |O_NDELAY //NONBLOCK 非阻塞打开标志
@@ -138,11 +142,12 @@ int main()
 		            memset(read_tmp,0,sizeof(read_tmp)); 
             		if( (nByte=read(fd, read_tmp, sizeof(read_tmp))) >0 )  
                     {
-	            		printf("nByte = %d\n",nByte);
+	            		//printf("nByte = %d\n",nByte);
 						totalrd += nByte;
-						printf("totalrd = %d\n",totalrd);
+						//printf("totalrd = %d\n",totalrd);
 	            		for(i=0;i<nByte;i++)
 	            		{
+							//帧头检测，并取出数据长度
                             if( (read_tmp[i] == HEAD) && (i < (nByte-1) ) )
 		            		{
 		             			memset(read_data,0,sizeof(read_data));
@@ -151,6 +156,7 @@ int main()
 			            		strcat(read_data,tmp);
 								len_data = read_tmp[i+1];
 			            	}
+							//帧尾检测
 			            	else if(read_tmp[i]==TAIL)
 			            	{
 			            	 	char tmp[5]={0};
@@ -167,20 +173,37 @@ int main()
                                 char tmp[5]={0};
 			            		tmp[0]=read_tmp[i];
 			            	  	strcat(read_data,tmp);
-			              	}
-			    	    	
-                            
+			              	}			    	    	   
 				    	}
 
 						if(return_flag == 1) 
 						{
+							//数据长度判断
 							if(totalrd == len_data)
 							{
-                                send(sock_cli,read_buf,strlen(read_buf),0);
-								break;
+								unsigned short result = CRC_Compute(read_buf,strlen(read_buf)-3);
+								printf("result = %d\n",result);
+								char result_1 = (char)result;
+								char result_2 = (char)(result>>8);
+																
+								//校验和判断
+								if( (result_1 == read_buf[strlen(read_buf)-3]) && (result_2 == read_buf[strlen(read_buf)-2]) )         
+								{
+									//校验正确，可进行数据处理
+                                    send(sock_cli,read_buf,strlen(read_buf),0);
+						    		printf("send size :%d\n",strlen(read_buf));
+						     		break;
+								}
+								else
+								{ 
+									//校验失败，退出当前循环
+									break;
+								}
+                                
 							}
 							else
 							{
+								//若长度校验不通过，退出当前循环
 								break;
 							}                           												         	
 				    	}	
@@ -284,10 +307,10 @@ int set_opt(int fd,int nSpeed, int nBits, char nEvent, int nStop)
 	return 0;
 }
 
-unsigned short CRC_Compute(unsigned char* snd,unsigned char len)
+unsigned short  CRC_Compute(unsigned char* snd,unsigned char len)
 {
 	auto int i, j;
-	auto unsigned short c,crc=0xFFFF;
+	auto unsigned short  c,crc=0xFFFF;
 	for(i = 0;i < len; i ++)
 	{
 		c = snd[i] & 0x00FF;
@@ -304,6 +327,8 @@ unsigned short CRC_Compute(unsigned char* snd,unsigned char len)
 	return (crc);
 }
  
+
+
 		 
 
 
