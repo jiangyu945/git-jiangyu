@@ -21,7 +21,6 @@
 
 #define BUFFER_SIZE   512
 #define DATA_REQ_SIZE  9
-#define DATA_SIZE      33
 
 
 //定义数据格式
@@ -68,7 +67,6 @@ int main()
 	int fd;	
 	char *uart3 = "/dev/ttySAC3";
 	char req_buf[DATA_REQ_SIZE];
-	char data_pack[BUFFER_SIZE];
 
 	char read_data[256] = {0};
     char read_buf[256] = {0};
@@ -77,7 +75,7 @@ int main()
 
 	
 
-	//构造请求数据
+	//构造请求数据帧
   	req_buf[0]=HEAD;
 	req_buf[1]=LEN;
 	req_buf[2]=OPTION;
@@ -89,8 +87,6 @@ int main()
 	req_buf[6] = (char)crc16;
     req_buf[7] = (char)(crc16>>8);
 
-	printf("req_buf[6] = %x\n",req_buf[6]);
-	printf("req_buf[7] = %x\n",req_buf[7]);
 	req_buf[8]=TAIL;
     
 	if((fd = open(uart3, O_RDWR|O_NOCTTY|O_NONBLOCK) )<0)   // |O_NDELAY //NONBLOCK 非阻塞打开标志
@@ -135,7 +131,7 @@ int main()
 			{  
 				 //读取一个完整数据包
                 char read_tmp[256]={0};
-	            int nByte,return_flag = 0 ;
+	            int nByte,return_flag=0;
 	            int i,len_data,totalrd=0;
 	            while(1)
 	            {
@@ -228,14 +224,7 @@ int set_opt(int fd,int nSpeed, int nBits, char nEvent, int nStop)
 		return -1;
 	}
 	bzero( &newtio, sizeof( newtio ) );
-	//newtio.c_cflag  |=  CLOCAL | CREAD; //使能接收和本地模式
-	//newtio.c_cflag &= ~CSIZE;
-    //newtio.c_lflag &=~ICANON;//原始模式    
-    //newtio.c_lflag |=ICANON; //标准模式	
-    	
-
-	
-
+    		
 	switch( nBits )
 	{
 		case 7:
@@ -294,8 +283,8 @@ int set_opt(int fd,int nSpeed, int nBits, char nEvent, int nStop)
 		newtio.c_cflag &=  ~CSTOPB;  
 	else if ( nStop == 2 )
 		newtio.c_cflag |=  CSTOPB;
-		newtio.c_cc[VTIME]  = 100; //150*100ms=15s 等待时间，单位百毫秒，0表示一直等待
-		newtio.c_cc[VMIN] = DATA_SIZE;  //最小字节数
+		newtio.c_cc[VTIME]  = 0; //150*100ms=15s 等待时间，单位百毫秒，0表示一直等待
+		newtio.c_cc[VMIN] = 0;  //最小字节数
 		tcflush(fd,TCIFLUSH);
 	if((tcsetattr(fd,TCSANOW,&newtio))!=0)
 	{
