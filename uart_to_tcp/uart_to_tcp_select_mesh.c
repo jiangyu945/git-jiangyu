@@ -177,8 +177,6 @@ int main()
 
                         if(return_flag_mesh == 1)                         												         	  
 				     	{
-                             printf("totalrd_mesh = %d\n",totalrd_mesh);
-							 printf("len_data_mesh = %d\n",len_data_mesh);
 				     		//数据长度判断
 					    	if(totalrd_mesh == len_data_mesh)
 					     	{																					    		
@@ -200,12 +198,12 @@ int main()
 
                         if(get_data_flag == 1) //提取成功，进行传感器数据帧处理
                         {
-							unsigned short result = CRC_Compute(read_buf_tmp,strlen(read_buf_tmp)-3);
+							unsigned short result = CRC_Compute(&read_buf_tmp[2],strlen(read_buf_tmp)-5);
 					     	//printf("result = %d\n",result);
 						    char result_1 = (char)result;
 						    char result_2 = (char)(result>>8);
 							//数据校验：帧头、帧尾、长度、校验码
-                            if((read_buf_tmp[0]==HEAD) && (read_buf_tmp[len_data_mesh-6]==TAIL) && (read_buf_tmp[1]==(len_data_mesh-5)) && (read_buf_tmp[len_data_mesh-6-2]==result_1) && (read_buf_tmp[len_data_mesh-6-1]==result_2)        )
+                            if((read_buf_tmp[2]==HEAD) && (read_buf_tmp[len_data_mesh-6]==TAIL) && (read_buf_tmp[3]==(len_data_mesh-5)) && (read_buf_tmp[len_data_mesh-6-2]==result_1) && (read_buf_tmp[len_data_mesh-6-1]==result_2)        )
 							{
 								//校验正确，可进行数据处理
 								memcpy(read_buf,read_buf_tmp,sizeof(read_buf_tmp));
