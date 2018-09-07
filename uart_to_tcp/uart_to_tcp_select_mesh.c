@@ -50,7 +50,7 @@ unsigned short CRC_Compute(unsigned char*,unsigned char);
 int main()
 {
 	int fd,k;	
-	char *uart3 = "/dev/ttySAC3";
+	char *uart3 = "/dev/ttySAC0";
     char req_buf_mesh[DATA_REQ_MESH_SIZE];
 	char req_buf[DATA_REQ_SIZE];
 
@@ -87,14 +87,14 @@ int main()
     //将 传感器信息请求数据帧 放入 蓝牙mesh请求数据帧
     for(k=5;k<14;k++)
     {
-        req_buf_mesh[k] = req_buf[k-4];
+        req_buf_mesh[k] = req_buf[k-5];
     }
     
 	if((fd = open(uart3, O_RDWR|O_NOCTTY|O_NONBLOCK) )<0)   // |O_NDELAY //NONBLOCK 非阻塞打开标志
 		printf("open %s is failed",uart3);
 	else
 	{
-		set_opt(fd, 115200, 8, 'N', 1);
+		set_opt(fd, 9600, 8, 'N', 1);
         
 		//创建套接字并绑定地址
 		int sock_cli = socket(AF_INET,SOCK_STREAM, 0);
