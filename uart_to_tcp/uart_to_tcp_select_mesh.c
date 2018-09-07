@@ -56,13 +56,11 @@ int main()
 
     char read_data_mesh[256] = {0};
     char read_buf_mesh[256] = {0};
-	char read_data[256] = {0};
     char read_buf[256] = {0};
 
     memset(req_buf_mesh,0,sizeof(req_buf_mesh));
 	memset(req_buf,0,sizeof(req_buf));
 
-	
 
 	//构造蓝牙mesh请求数据帧
     req_buf_mesh[0]=HEAD_MESH;
@@ -131,19 +129,19 @@ int main()
 			write(fd,req_buf_mesh,DATA_REQ_MESH_SIZE); 
 			if (select(fd+1,&fds,NULL,NULL,&timeout) > 0 )  //监听串口，超时时间为10s
 			{  
-				 //读取一个完整数据包
+				//读取一个完整数据包
                 char read_tmp_mesh[256]={0};
                 char read_tmp[256]={0};
-                int nByte_mesh,return_flag_mesh=0,get_data_flag=0,head_flag=0;
-	            int nByte,return_flag=0;
+				char read_buf_tmp[256]={0};
+                int nByte_mesh,return_flag_mesh=0,get_data_flag=0,head_flag=0,count;
+	            int return_flag=0;
                 int i_mesh,len_data_mesh,totalrd_mesh=0;
-	            int i,len_data,totalrd=0;
+				
 	            while(1)
 	            {
 		            memset(read_tmp_mesh,0,sizeof(read_tmp_mesh)); 
             		if( (nByte_mesh=read(fd, read_tmp_mesh, sizeof(read_tmp_mesh))) >0 )  
                     {
-	            		//printf("nByte_mesh = %d\n",nByte_mesh);
 						totalrd_mesh += nByte_mesh;
 						printf("totalrd_mesh = %d\n",totalrd_mesh);
 	            		for(i_mesh=0;i_mesh<strlen(read_tmp_mesh);i_mesh++)
@@ -155,23 +153,24 @@ int main()
 			            		char tmp_mesh[5] = {0};
 			            		tmp_mesh[0]=read_tmp_mesh[i_mesh];
 			            		strcat(read_data_mesh,tmp_mesh);
-								len_data_mesh = read_tmp_mesh[i_mesh+2]+4;
+								len_data_mesh = read_tmp_mesh[i_mesh+2]+4; //取出数据长度，并计算数据帧总长度
                                 head_flag = 1;     //检查到头部标志
+								count = len_data_mesh-1;  //count用于计数后面还需取出的字节数
                             }
-                            if(head_flag == 1)
+                            else if(head_flag == 1)
                             { 
-                                
-                                for(;len_data_mesh>0;len_data_mesh--)
-                                {
-                                    char tmp_mesh[5]={0};
-			            	    	tmp_mesh[0]=read_tmp_mesh[i_mesh];
-			            	     	strcat(read_data_mesh,tmp_mesh);   
-                                }
-                                return_flag_mesh = 1;
-                                printf("len = %d\n",strlen(read_data_mesh));
-                                memset(read_buf_mesh,0,sizeof(read_buf_mesh));
-			            		memcpy(read_buf_mesh,read_data_mesh,sizeof(read_data_mesh));
-								break;
+                                char tmp_mesh[5]={0};
+			            	    tmp_mesh[0]=read_tmp_mesh[i_mesh];
+								
+                                strcat(read_data_mesh,tmp_mesh);  
+                                count--;
+                                if(count == 0)
+							    {
+                                    return_flag_mesh = 1;
+                                    memset(read_buf_mesh,0,sizeof(read_buf_mesh));
+			            	        memcpy(read_buf_mesh,read_data_mesh,sizeof(read_data_mesh));
+								    break;
+							    }       
                             }
                             
                         }
@@ -179,19 +178,17 @@ int main()
                         if(return_flag_mesh == 1)                         												         	  
 				     	{
                              printf("totalrd_mesh = %d\n",totalrd_mesh);
+							 printf("len_data_mesh = %d\n",len_data_mesh);
 				     		//数据长度判断
 					    	if(totalrd_mesh == len_data_mesh)
 					     	{																					    		
 						    	//进行数据处理,提取传感器数据信息
                                 int k_mesh;
                                 for(k_mesh=4;k_mesh<(strlen(read_buf_mesh)-1);k_mesh++)
-                                {
-                                    
-                                    read_buf_mesh[k_mesh-4] = read_buf_mesh[k_mesh];        
+                                {          
+                                    read_buf_tmp[k_mesh-4] = read_buf_mesh[k_mesh];        
                                 }
-                                printf("read_buf_mesh size :%d\n",strlen(read_buf_mesh));
                                 get_data_flag = 1;   //提取传感器信息成功标志
-                                break;
                             }
                             else
 						    { 
@@ -203,77 +200,29 @@ int main()
 
                         if(get_data_flag == 1) //提取成功，进行传感器数据帧处理
                         {
-                            
-                            for(i=0;i<strlen(read_buf_mesh);i++) 
-                            {
-                                //帧头检测，并取出数据长度
-                                if( (read_tmp[i] == HEAD) && (i < (nByte-1) ) )
-		                	 	{
-		                 			memset(read_data,0,sizeof(read_data));
-			                		char tmp[5] = {0};
-			                		tmp[0]=read_tmp[i];
-			                		strcat(read_data,tmp);
-						    		len_data = read_tmp[i+1];
-			                	}
-						    	//帧尾检测
-			                	else if(read_tmp[i]==TAIL)
-			                	{
-			                	 	char tmp[5]={0};
-			                	  	tmp[0]=read_tmp[i];
-			                		strcat(read_data,tmp);
-
-			                		return_flag = 1;
-			                		memset(read_buf,0,sizeof(read_buf));
-			                		memcpy(read_buf,read_data,sizeof(read_data));
-						    		break;
-			                	}
-			                	else
-			                	{
-                                    char tmp[5]={0};
-			                		tmp[0]=read_tmp[i];
-			                	  	strcat(read_data,tmp);
-			                 	}			    	 
-                            }  
-
-                            if(return_flag == 1) 
-					    	{
-					    		//数据长度判断
-					      		if(totalrd == len_data)
-					    		{
-					    			unsigned short result = CRC_Compute(read_buf,strlen(read_buf)-3);
-					     			printf("result = %d\n",result);
-						    		char result_1 = (char)result;
-						    		char result_2 = (char)(result>>8);
-																
-						    		//校验和判断
-						    		if( (result_1 == read_buf[strlen(read_buf)-3]) && (result_2 == read_buf[strlen(read_buf)-2]) )         
-						    		{
-						     			//校验正确，可进行数据处理
-                                        send(sock_cli,read_buf,strlen(read_buf),0);
-						        		printf("send size :%d\n",strlen(read_buf));
-						         		break;
-							       	}
-							    	else
-							    	{ 
-							    		//校验失败，退出当前循环
-							    		break;
-							    	}
-                                
-						    	}
-						    	else
-						     	{
-						    		//若长度校验不通过，退出当前循环
-						    		break;
-						    	}                           												         	
-				    	    }	                            
-
+							unsigned short result = CRC_Compute(read_buf_tmp,strlen(read_buf_tmp)-3);
+					     	//printf("result = %d\n",result);
+						    char result_1 = (char)result;
+						    char result_2 = (char)(result>>8);
+							//数据校验：帧头、帧尾、长度、校验码
+                            if((read_buf_tmp[0]==HEAD) && (read_buf_tmp[len_data_mesh-6]==TAIL) && (read_buf_tmp[1]==(len_data_mesh-5)) && (read_buf_tmp[len_data_mesh-6-2]==result_1) && (read_buf_tmp[len_data_mesh-6-1]==result_2)        )
+							{
+								//校验正确，可进行数据处理
+								memcpy(read_buf,read_buf_tmp,sizeof(read_buf_tmp));
+								memset(read_buf_tmp,0,sizeof(read_buf_tmp));
+                                send(sock_cli,read_buf,strlen(read_buf),0);
+								break;
+							}
+							else
+							{
+								break;
+							}
 
                         }
-
-                                   
+                
 		    		}					
                 } 
-	    		sleep(10);
+	    		sleep(5);
 			}        					  								
         }   
 		close(sock_cli);    
