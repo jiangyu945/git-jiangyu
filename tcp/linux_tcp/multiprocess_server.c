@@ -29,9 +29,9 @@ int main( int argc , char ** argv )
 
 	struct sockaddr_in saddr, caddr;
  
-	char send_buf[1024];
-	char recv_buf[1024];
-	char ipbuf[50];
+	unsigned char send_buf[1024];
+	unsigned char recv_buf[1024];
+	unsigned char ipbuf[50];
 	int sockfd, connfd;
 	int addr_len;
 	pid_t pid;
@@ -95,24 +95,24 @@ int main( int argc , char ** argv )
 					exit(0);					
 					close(connfd);
 				}
-				else{
+				else
+				{
 					inet_ntop(AF_INET,(void*)&caddr.sin_addr.s_addr,ipbuf,50);
 					printf("ip:%s,port:%d\n",ipbuf,ntohs(caddr.sin_port));
 					printf("Recived %d bytes\n",n);
 					int i;
 					for(i=0;i<n;i++)
 					{
-						printf("%02x\n", recv_buf[i]);
+						printf("%02x", recv_buf[i]);
 					}
-					//printf("Recived %d bytes: %s \n",n, recv_buf);
-					send(connfd,recv_buf,n,0);	 
-					memset( recv_buf, 0, sizeof(recv_buf) );
+						printf("\n");
+						//printf("Recived %d bytes: %s \n",n, recv_buf);
+						send(connfd,recv_buf,n,0);	 
+						memset( recv_buf, 0, sizeof(recv_buf) );
+						
 				}
-				
-					
 			}
 		}
-
 		else if(pid>0)  //父进程，用于继续监测有没有新的客户端连入
 		{
 			close(connfd);//关闭新客户端返回的套接字，因为在父进程中用不到			
@@ -139,5 +139,5 @@ int main( int argc , char ** argv )
 
     close( sockfd );
     close( connfd );
-	return -1;
+	return 0;
 }
