@@ -253,17 +253,18 @@ unsigned short  CRC_Compute(unsigned char* snd,unsigned char len)
 void read_one_frame(int sock_fd)
 {
 	char read_tmp[256]={0};
-	int nByte,totalrd=0,get_complete_flag=0,get_head_flag=0,return_flag=0,count;
+	int nByte,totalrd=0,get_complete_flag=0,get_head_flag=0,return_flag=0,count=0;
 	int i,len_data_mesh;
 	
 	while(1)
 	{
-		memset(read_tmp,0,sizeof(read_tmp)); 
+		//memset(read_tmp,0,sizeof(read_tmp)); 
 
 		//读取串口数据
-		if( (nByte=read(fd, read_tmp, sizeof(read_tmp))) >0 )  
-		{
+		if((nByte=read(fd, read_tmp, sizeof(read_tmp))) > 0)
+		{	//nByte=read(fd, read_tmp, sizeof(read_tmp)); 
 			totalrd += nByte;  //保存已读取到的数据总长度
+			printf("nByte: %d\n",nByte);
 			printf("totalrd: %d\n",totalrd);
 			for(i=0;i<strlen(read_tmp);i++)
 			{ 
@@ -273,72 +274,61 @@ void read_one_frame(int sock_fd)
 					memset(read_data,0,sizeof(read_data));
 					char tmp[5] = {0};
 					tmp[0]=read_tmp[i];
+					printf("read_tmp[i]:%x\n",read_tmp[i]);
 					strcat(read_data,tmp);
+					count=DATA_TOTAL_SIZE-1;
 					len_data_mesh = read_tmp[i+2]+4; //取出数据长度，并计算数据帧总长度
 					get_head_flag = 1;     //检查到头部标志
-					count = len_data_mesh-1;  //count用于计数后面还需取出的字节数
 				}
 				else if(get_head_flag == 1)
 				{ 
 					char tmp[5]={0};
 					tmp[0]=read_tmp[i];
-					strcat(read_data,tmp);  
+					printf("read_tmp[i]:%x\n",read_tmp[i]);
+					strcat(read_data,tmp);
 					count--;
+					printf("count:%d\n",count);
 					if(count == 0)  
 					{
-						get_complete_flag = 1;     //标志位置1，表明已取够一帧完整数据
 						memset(read_buf,0,sizeof(read_buf));
 						memcpy(read_buf,read_data,sizeof(read_data));
-						break;
-					}       
+						
+						//已取够一帧完整数据，进行数据处理,提取传感器数据信息
+						int k;
+						for(k=4;k<(len_data_mesh-1);k++)
+						{          
+							send_buf[k-4] = read_buf[k];        
+						}
+
+						//进行传感器数据帧处理
+						unsigned short result = CRC_Compute(&send_buf[2],strlen(send_buf)-5);
+						char result_1 = (char)result;
+						char result_2 = (char)(result>>8);
+
+						//数据校验：帧头、帧尾、长度、校验码
+						if((send_buf[2]==HEAD) && (send_buf[len_data_mesh-6]==TAIL) && (send_buf[3]==(len_data_mesh-5)) && (send_buf[len_data_mesh-6-2]==result_1) && (send_buf[len_data_mesh-6-1]==result_2) )
+						{
+							//校验正确，进行数据处理
+							send(sock_fd,send_buf,strlen(send_buf),0);     //发送数据给服务器
+							printf("send to server...\n");
+							printf("send %d bytes successful!\n",strlen(send_buf));
+							memset(send_buf,0,sizeof(send_buf));
+							get_head_flag = 0;
+							get_complete_flag = 0;
+							break;
+						}
+						else
+						{
+							break;
+						}
+							
+					}      	 
 				}
-				
+
 			}
-
-			if(get_complete_flag == 1)                         												         	  
-			{
-				//数据长度判断
-				if(len_data_mesh == DATA_TOTAL_SIZE)
-				{																					    		
-					//进行数据处理,提取传感器数据信息
-					int k;
-					for(k=4;k<(len_data_mesh-1);k++)
-					{          
-						send_buf[k-4] = read_buf[k];        
-					}
-					return_flag = 1;   //提取传感器信息成功标志
-				}
-				else
-				{ 
-					//长度校验失败，退出当前循环
-					break;
-				}
-			}
-				
-			//提取成功，进行传感器数据帧处理
-			if(return_flag == 1) 
-			{
-				unsigned short result = CRC_Compute(&send_buf[2],strlen(send_buf)-5);
-				char result_1 = (char)result;
-				char result_2 = (char)(result>>8);
-
-				//数据校验：帧头、帧尾、长度、校验码
-				if((send_buf[2]==HEAD) && (send_buf[len_data_mesh-6]==TAIL) && (send_buf[3]==(len_data_mesh-5)) && (send_buf[len_data_mesh-6-2]==result_1) && (send_buf[len_data_mesh-6-1]==result_2)        )
-				{
-					//校验正确，进行数据处理
-					send(sock_fd,send_buf,strlen(send_buf),0);     //发送数据给服务器
-					printf("send to server...\n");
-					printf("send %d bytes successful!\n",strlen(send_buf));
-					memset(send_buf,0,sizeof(send_buf));
-					break;
-				}
-				else
-				{
-					break;
-				}
-
-            }
-        }				
+			
+		}		
+        				
     } 
 }
 

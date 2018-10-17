@@ -25,8 +25,8 @@
 
 #define MYPORT 8080
  
-#define REQ_FRAME_SIZE    9      //传感器信息协议帧总长
-#define RECV_DATA_SIZE    35     //传感器响应帧数据总长
+#define REQ_FRAME_SIZE    9      //数据请求帧长度
+
 //传感器数据请求格式
 #define HEAD    0xAA        
 #define LEN     0x09
@@ -77,12 +77,12 @@ int get_one_frame(int sockfd)
             for(i=0;i<nByte;i++)
             { 
                 //帧头检测，并取出数据长度
-                if( (recv_tmp[i] == 0x01) && (recv_tmp[i+1] == 0x01) && (i < (nByte-3) ) )
+                if( (recv_tmp[i] == 0x01) && (recv_tmp[i+1] < 0x0a) && (recv_tmp[i+2] == 0xaa) && (i < (nByte-3) ) )
                 {
                     char tmp[5] = {0};
                     tmp[0]=recv_tmp[i];
                     strcat(recv_buf,tmp);
-                    len = recv_tmp[i+3];   //取出帧长度
+                    len = recv_tmp[i+3]+2;   //计算帧总长
                     get_head_flag = 1;     //检查到头部标志
                     count = len-1;         //count用于计数后面还需取出的字节数
                 }
@@ -102,11 +102,19 @@ int get_one_frame(int sockfd)
 
             if(get_complete_flag == 1)                         												         	  
             {
-                unsigned short result = CRC_Compute(&recv_buf[2],len-5);
-                char result_1 = (char)result;
-                char result_2 = (char)(result>>8);
-                //数据校验：长度、校验码、帧尾
-                if( (len == RECV_DATA_SIZE) && (recv_buf[len-3] == result_1) && (recv_buf[len-2] == result_2) && (recv_buf[len-1] == TAIL) )
+                unsigned short result = CRC_Compute(&recv_buf[2],(unsigned char)(len-5));
+                unsigned char result_1 = (unsigned char)result;
+                unsigned char result_2 = (unsigned char)(result>>8);
+                int k;
+                    for(k=0;k<len;k++)
+                    {
+                        printf("%02x", recv_buf[k]);
+                    }
+                    printf("\n");
+                printf("start to check...\n");
+                //数据校验：校验码、帧尾
+                printf("recv_buf[len-3]:%d, result_1:%d,recv_buf[len-2]:%d,result_2:%d,recv_buf[len-1]:%d\n",recv_buf[len-3],result_1,recv_buf[len-2],result_2,recv_buf[len-1]);
+                if( (recv_buf[len-3] == result_1) && (recv_buf[len-2] == result_2) && (recv_buf[len-1] == TAIL) )
                 {																					    		
                     int k;
                     for(k=0;k<len;k++)
@@ -120,6 +128,7 @@ int get_one_frame(int sockfd)
                 else
                 { 
                     //校验失败，丢弃本帧数据
+                    printf("data check failed!\n");
                     memset(recv_buf,0,sizeof(recv_buf));
                     break;
                 }
@@ -170,7 +179,7 @@ void* pthread_handler(void* sock)
             ret = get_one_frame(newsock);
             if(ret == 0)
                 break;
-            sleep(10);   //延时10s，每10s发送一次数据请求
+           sleep(10);   //延时10s，每10s发送一次数据请求
         }    
     }
     close(newsock);   

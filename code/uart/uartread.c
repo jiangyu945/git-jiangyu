@@ -8,9 +8,8 @@
 #include <errno.h>
 
 int set_opt(int,int,int,char,int);
-extern void tcp_send(void);
 //"/dev/ttySAC3"是con2，靠近耳机接口的串口
-void uartread()
+void main()
 {
 	int fd,nByte;
 	char *uart3 = "/dev/ttySAC3";
@@ -24,10 +23,9 @@ void uartread()
 		write(fd,uart_out, strlen(uart_out));
 		while(1){
 			while((nByte = read(fd, readbuf, 512))>0){
-				readbuf[nByte+1] = '\0';			
-				tcp_send();
-               // write(fd,readbuf,strlen(readbuf));
-				//memset(readbuf, 0, strlen(readbuf));
+				readbuf[nByte+1] = '\0';		
+                write(fd,readbuf,strlen(readbuf));
+				memset(readbuf, 0, strlen(readbuf));
 				nByte = 0;
 			}
 		}
