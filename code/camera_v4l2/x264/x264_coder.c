@@ -25,7 +25,7 @@ extern "C"
  
 int width=640;
 int height=480;
-int csp=X264_CSP_I422;
+int csp=X264_CSP_I420;
 
 int main(int argc, char** argv)
 {
@@ -34,8 +34,8 @@ int main(int argc, char** argv)
          int y_size;
          int i,j;
  
-         FILE* fp_src  = fopen("./out_image.yuv", "rb");
-         FILE* fp_dst = fopen("out_image.h264", "wb");
+         FILE* fp_src  = fopen("./yuv420p_640x480.yuv", "rb");
+         FILE* fp_dst = fopen("output.h264", "wb");
         
          //Encode frame number
          //if set 0, encode all frame

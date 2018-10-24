@@ -1,0 +1,14 @@
+prefix=/home/jiangyu/software/ffmpeg/_install
+exec_prefix=${prefix}
+libdir=/home/jiangyu/software/ffmpeg/_install/lib
+includedir=/home/jiangyu/software/ffmpeg/_install/include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 56.14.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil 
+Libs.private: -pthread -lrt -lm
+Cflags: -I${includedir}
