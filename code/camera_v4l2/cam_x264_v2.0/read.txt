@@ -1,4 +1,7 @@
-功能介绍：
-      
-       cam端：采集yuyv图像，转换为yuv420p格式，通过x264压缩编码为h264码流，并通过tcp发送到接收端。
-       cli端：接收cam端发送的图像数据，保存成本地h264文件。
+*************************************Function Brief***********************************************************
+ 
+================================================================== 
+cam:
+        image capture（yuyv）-->convert yuv420p-->encode to h264 code stream-->transport data by tcp protocol
+==================================================================
+cli：receive image data,and then save as a xxx.h264 file.

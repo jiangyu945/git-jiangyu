@@ -1,0 +1,6 @@
+***************************Function*****************************************
+      
+       decode h264 code stream to yuv420p image data,and save as a file.
+
+******************* ********Notice*******************************************
+       Thought the ffmpeg library  has transplanted success,the compilation still failed!!! Port of the code needs to be modified!!!

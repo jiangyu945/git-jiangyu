@@ -1,0 +1,3 @@
+=========================Function Brief=================================
+
+     play local xxx.yuv video by SDL2.
