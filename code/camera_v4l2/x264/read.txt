@@ -1,3 +1,0 @@
-========================Function Brief=================================
-
-      Encode yuv420p image data to .h264 code stream,and save as a xxx.h264.

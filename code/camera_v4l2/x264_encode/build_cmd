@@ -1,0 +1,1 @@
+arm-none-linux-gnueabi-gcc x264_encode.c -o x264_encode -L/home/jiangyu/software/x264/x264-snapshot-20181014-2245/_install/lib/ -I/home/jiangyu/software/x264/x264-snapshot-20181014-2245/_install/include/ -lx264

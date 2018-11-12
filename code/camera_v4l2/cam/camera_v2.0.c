@@ -44,6 +44,15 @@ unsigned long n_buffers;
 
 static int cam_fd;
 
+int usTimer(long us)
+{
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = us;
+
+    return select(0,NULL,NULL,NULL,&timeout);
+}
+
 int yuyv_to_yuv420p(const unsigned char *in, unsigned char *out, unsigned int width, unsigned int height)
 {
     
@@ -154,7 +163,17 @@ void get_fps()
     parm = (struct v4l2_streamparm *)calloc(1, sizeof(struct v4l2_streamparm));
     memset(parm, 0, sizeof(struct v4l2_streamparm));
     parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE; 
+
+    parm->parm.capture.timeperframe.numerator = 1;
+    parm->parm.capture.timeperframe.denominator = 2;
     
+    int result;
+    result = ioctl(cam_fd,VIDIOC_S_PARM, parm);
+    if(result == -1)
+    {
+        perror("Set fps failed!\n");
+    }
+
     int rel;
     rel = ioctl(cam_fd,VIDIOC_G_PARM, parm);
 
@@ -162,7 +181,6 @@ void get_fps()
     {
         printf("Frame rate:  %u/%u\n",parm->parm.capture.timeperframe.denominator,parm->parm.capture.timeperframe.numerator);
     }
-
     free(parm);
 }
 
@@ -221,6 +239,7 @@ static void start_cap()
     ioctl(cam_fd, VIDIOC_STREAMON, &type);
 }
 
+//图像数据处理
 static void process_img(void* addr,int length,void* fp_yuyv,void* fp_yuv420)
 { 
     unsigned char *yuyv_buf = (unsigned char *)malloc(2*1280*720*sizeof(unsigned char));
@@ -260,8 +279,8 @@ static void main_loop()
     FILE* fp_yuyv = fopen("yuyv_640x480.yuv", "a+");  //以追加的方式打开
     FILE* fp_yuv420 = fopen("yuv420p_640x480.yuv", "a+");  //以追加的方式打开
     
-    int count=50; 
-    while(count-->0)
+    int count=1; 
+    for(;count<=100;count++)
     {
         int ret;
         /*select监听*/
@@ -272,21 +291,20 @@ static void main_loop()
         ret = select(cam_fd + 1, &fds, NULL, NULL, NULL);
         if(ret >0)
         {
-            /*//获取当前时间
+            //获取当前时间
             struct timeval tv;
             struct timezone tz;
             gettimeofday (&tv, &tz);
             printf("tv_sec; %d\n", tv.tv_sec);
             printf("tv_usec; %d\n", tv.tv_usec);
-            */ 
+             
             read_frame(fp_yuyv,fp_yuv420);
-            /*
+            printf("frame: %d\n",count);
+            
             gettimeofday (&tv, &tz);
             printf("tv_sec; %d\n", tv.tv_sec);
-            printf("tv_usec; %d\n", tv.tv_usec);
-            */ 
+            printf("tv_usec; %d\n", tv.tv_usec);           
         }
-        printf("frame: %d\n",100-count);
     }
 
     fclose(fp_yuyv);

@@ -4,7 +4,7 @@
  Author      : Greein-jy
  Version     : v1.0
  date        : 2018-10-15
- Description : V4L2 capture one frame image
+ Description : V4L2 capture one frame image(yuyv)
  ============================================================================
  */
 
@@ -28,8 +28,8 @@
 
 #define  DEV_NAME  "/dev/video5"
 
-#define  WIDTH    640   
-#define  HEIGHT   480
+#define  WIDTH    1920   
+#define  HEIGHT   1080
 
 struct buffer
 {

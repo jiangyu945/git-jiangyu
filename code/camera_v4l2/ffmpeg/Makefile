@@ -1,11 +1,11 @@
-BIN = ffmpeg_decode
+BIN = ff_decode
 IDIR = include/
 SRC = $(wildcard *.c)
 OBJS = $(patsubst %.c,%.o,$(SRC))
 
-LDIR = lib/
+LDIR = lib
 CFLAGS = -I$(IDIR) -g
-LIBS = -L$(LDIR)
+LIBS = -L$(LDIR) -lavcodec -lavutil -lavformat -lswresample -lx264
 
 CC = /usr/local/arm/arm-2009q3/bin/arm-none-linux-gnueabi-gcc
 

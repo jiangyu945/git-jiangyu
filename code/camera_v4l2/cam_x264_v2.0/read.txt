@@ -1,7 +1,0 @@
-*************************************Function Brief***********************************************************
- 
-================================================================== 
-cam:
-        image capture£¨yuyv£©-->convert yuv420p-->encode to h264 code stream-->transport data by tcp protocol
-==================================================================
-cli£ºreceive image data,and then save as a xxx.h264 file.
