@@ -1,0 +1,3 @@
+esp8266_nonos_sdk-2.2.0 ： 方明强模板改进，不加SNTP功能无法连接路由器
+
+esp8266_nonos_sdk-2.2.0_tcpclient_v1.0  :  蒋宇模板改进，功能测试通过。
