@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/new/prefix1">
+        <file>Media Player.ico</file>
+        <file>Sharingan.ico</file>
+        <file>../background-image/images (1).jpg</file>
+        <file>../background-image/images.jpg</file>
+        <file>../background-image/images.png</file>
+        <file>../background-image/thumb-1920-30627.jpg</file>
+        <file>../background-image/Sharingan.jpg</file>
+        <file>../background-image/player.png</file>
+        <file>Movies 2.ico</file>
+        <file>Eject (2).ico</file>
+        <file>Folder.ico</file>
+        <file>Network.ico</file>
+        <file>Pictures (2).ico</file>
+    </qresource>
+</RCC>
