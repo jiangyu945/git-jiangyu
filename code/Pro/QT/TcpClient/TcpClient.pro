@@ -29,3 +29,6 @@ SOURCES += main.cpp\
 HEADERS  += widget.h
 
 FORMS    += widget.ui
+
+RESOURCES += \
+    img.qrc

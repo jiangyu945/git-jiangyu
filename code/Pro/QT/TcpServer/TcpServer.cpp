@@ -34,21 +34,23 @@ void TcpServer::on_pushButton_Bind_clicked()
     QString serverPort;
     QString msg;
 
-//    //方法一，自动获取IP
-//    QList<QHostAddress> addrs = QNetworkInterface::allAddresses();
-//    for(int i=0;i<addrs.length();i++){
-//        QHostAddress addr = addrs.at(i);
-//        if(addr.toString().contains("192.")){
-//            serverIP = addr.toString();
-//            ui->lineEdit_ServerIp->setText(serverIP);
-//            break;
-//        }
-//    }
-    //方法二，手动设置IP
-    serverIP = ui->lineEdit_ServerIp->text();
+    /********************************方法一：自动获取IP*****************************/
+    QList<QHostAddress> addrs = QNetworkInterface::allAddresses();
+    for(int i=0;i<addrs.length();i++){
+        QHostAddress addr = addrs.at(i);
+        if(addr.toString().contains("192.")){
+            serverIP = addr.toString();
+            ui->lineEdit_ServerIp->setText(serverIP);
+            break;
+        }
+    }
+    /********************************方法二：手动设置IP*****************************/
+//    serverIP = ui->lineEdit_ServerIp->text();
+
     serverPort = ui->lineEdit_ServerPort->text();
 
-    bool ret = myServer->listen(QHostAddress(serverIP),serverPort.toUInt());  //绑定IP、端口
+    //绑定IP、端口
+    bool ret = myServer->listen(QHostAddress(serverIP),serverPort.toUInt());
     if(!ret){
         msg = "绑定失败！";
     }
@@ -61,7 +63,6 @@ void TcpServer::on_pushButton_Bind_clicked()
     myServer->setMaxPendingConnections(MAXNUM);  //设置最大监听数
 
     connect(myServer,SIGNAL(newConnection()),this,SLOT(doProcessNewConnection()));
-    //connect(myServer,SIGNAL(acceptError(QAbstractSocket::SocketError)),this,SLOT(doProcessAcceptError(QAbstractSocket::SocketError)));
 
 }
 
@@ -70,6 +71,8 @@ void TcpServer::doProcessNewConnection()
 {
      client = myServer->nextPendingConnection();   //获取客户端连接的描述符
      arrayClient.append(client);                   //存入客户端buffer
+
+     ui->lineEdit_clientIP->setText(client->peerAddress().toString());
      //客户端连接
      connect(client,SIGNAL(connected()),this,SLOT(doProcessConnected()));
      //客户端断开
@@ -80,7 +83,7 @@ void TcpServer::doProcessNewConnection()
 
 }
 
-//连接成功
+//新客户端成功接入
 void TcpServer::doProcessConnected()
 {
     QTcpSocket *client = (QTcpSocket*)this->sender();
@@ -89,14 +92,6 @@ void TcpServer::doProcessConnected()
             .arg(client->peerPort());
     ui->textEdit_Server->append(msg);
 }
-
-//连接错误
-//void Mymonitor::doProcessAcceptError(QAbstractSocket::SocketError err)
-//{
-//    ui->textEdit_Server->append(QString("客户端连接错误！错误码："));
-//    ui->textEdit_Server->append(QString(err));
-//}
-
 
 //客户端断开
 void TcpServer::doProcessDisconnected()
@@ -133,23 +128,47 @@ void TcpServer::doProcessreadyRead(){
     }
 }
 
-
+//发送数据
 void TcpServer::on_pushButton_sendToClient_clicked()
 {
+
     QString ip = ui->lineEdit_clientIP->text();
     QString port = ui->lineEdit_clientPort->text();
+
+    //发送文本数据
+//    //遍历列表，查找对应客户端
+//    for(int i=0;i<arrayClient.length();i++){
+//        if((arrayClient.at(i)->peerAddress()).toString() == ip){
+//            if(arrayClient.at(i)->peerPort() == port.toUInt()){
+//                QString msg = ui->textEdit_Client->toPlainText();
+//                arrayClient.at(i)->write(msg.toUtf8());
+//                ui->textEdit_Client->clear();
+//                break;
+//            }
+//        }
+//    }
+
+    //发送图像数据
+    QPixmap img;
+    img.load(":/img/player.png");
+
+    QByteArray array;
+    QBuffer buffer;
+    buffer.open(QIODevice::ReadWrite);
+
+    img.save(&buffer,"PNG");
+    array.append(buffer.data());
 
     //遍历列表，查找对应客户端
     for(int i=0;i<arrayClient.length();i++){
         if((arrayClient.at(i)->peerAddress()).toString() == ip){
             if(arrayClient.at(i)->peerPort() == port.toUInt()){
-                QString msg = ui->textEdit_Client->toPlainText();
-                arrayClient.at(i)->write(msg.toUtf8());
-                ui->textEdit_Client->clear();
+                arrayClient.at(i)->write(array);
                 break;
             }
         }
     }
+
 }
 
 

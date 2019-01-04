@@ -6,9 +6,18 @@
 #include <QHostAddress>
 #include <QAbstractSocket>
 
+#include <QImage>
+#include <QByteArray>
+#include <QImageReader>
+
+#include <QDebug>
+
+#include <QPixmap>
+
 namespace Ui {
 class Widget;
 }
+
 
 class Widget : public QWidget
 {
@@ -18,11 +27,13 @@ public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
 
+signals:
+    void Sig();
+
 private slots:
     void on_pushButton_connectToServer_clicked();
     void doProcessConnected();
     void doProcessReadyRead();
-    void doProcessError(QAbstractSocket::SocketError);
     void doProcessDisconnected();
 
     void on_pushButton_sendToServer_clicked();
@@ -30,7 +41,11 @@ private slots:
 private:
     Ui::Widget *ui;
     QTcpSocket *myClient;
+    QByteArray array;
+
     void Init();
 };
+
+
 
 #endif // WIDGET_H

@@ -27,23 +27,24 @@ static const uint qt_meta_data_Widget[] = {
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       0,       // signalCount
+       1,       // signalCount
+
+ // signals: signature, parameters, type, tag, flags
+       8,    7,    7,    7, 0x05,
 
  // slots: signature, parameters, type, tag, flags
-       8,    7,    7,    7, 0x08,
-      48,    7,    7,    7, 0x08,
-      69,    7,    7,    7, 0x08,
-      90,    7,    7,    7, 0x08,
-     135,    7,    7,    7, 0x08,
-     159,    7,    7,    7, 0x08,
+      14,    7,    7,    7, 0x08,
+      54,    7,    7,    7, 0x08,
+      75,    7,    7,    7, 0x08,
+      96,    7,    7,    7, 0x08,
+     120,    7,    7,    7, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_Widget[] = {
-    "Widget\0\0on_pushButton_connectToServer_clicked()\0"
+    "Widget\0\0Sig()\0on_pushButton_connectToServer_clicked()\0"
     "doProcessConnected()\0doProcessReadyRead()\0"
-    "doProcessError(QAbstractSocket::SocketError)\0"
     "doProcessDisconnected()\0"
     "on_pushButton_sendToServer_clicked()\0"
 };
@@ -54,15 +55,16 @@ void Widget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         Q_ASSERT(staticMetaObject.cast(_o));
         Widget *_t = static_cast<Widget *>(_o);
         switch (_id) {
-        case 0: _t->on_pushButton_connectToServer_clicked(); break;
-        case 1: _t->doProcessConnected(); break;
-        case 2: _t->doProcessReadyRead(); break;
-        case 3: _t->doProcessError((*reinterpret_cast< QAbstractSocket::SocketError(*)>(_a[1]))); break;
+        case 0: _t->Sig(); break;
+        case 1: _t->on_pushButton_connectToServer_clicked(); break;
+        case 2: _t->doProcessConnected(); break;
+        case 3: _t->doProcessReadyRead(); break;
         case 4: _t->doProcessDisconnected(); break;
         case 5: _t->on_pushButton_sendToServer_clicked(); break;
         default: ;
         }
     }
+    Q_UNUSED(_a);
 }
 
 const QMetaObjectExtraData Widget::staticMetaObjectExtraData = {
@@ -102,5 +104,11 @@ int Widget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         _id -= 6;
     }
     return _id;
+}
+
+// SIGNAL 0
+void Widget::Sig()
+{
+    QMetaObject::activate(this, &staticMetaObject, 0, 0);
 }
 QT_END_MOC_NAMESPACE

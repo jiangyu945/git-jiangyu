@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/player.png</file>
+        <file>img/Sharingan.jpg</file>
+        <file>img/201607071035305894.jpg</file>
+        <file>img/rgb24_1080p.rgb</file>
+        <file>img/text.jpg</file>
+    </qresource>
+</RCC>

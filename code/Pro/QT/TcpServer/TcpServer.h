@@ -6,6 +6,8 @@
 #include <QNetworkInterface>   //该类提供主机IP地址和网络接口的列表
 #include <QTcpSocket>
 
+#include <QBuffer>
+
 
 namespace Ui {
 class TcpServer;
@@ -23,7 +25,6 @@ private slots:
     void on_pushButton_Bind_clicked();
     void doProcessNewConnection();
     void doProcessConnected();
-    //void doProcessAcceptError(QAbstractSocket::SocketError);
     void doProcessDisconnected();
     void doProcessreadyRead();
 

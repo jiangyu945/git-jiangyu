@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>566</width>
-    <height>484</height>
+    <width>834</width>
+    <height>369</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>501</width>
-     <height>452</height>
+     <x>400</x>
+     <y>0</y>
+     <width>431</width>
+     <height>361</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -43,7 +43,11 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit_ServerPort"/>
+       <widget class="QLineEdit" name="lineEdit_ServerPort">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_connectToServer">
@@ -68,6 +72,19 @@
      <widget class="QTextEdit" name="textEdit_SenBbuf"/>
     </item>
    </layout>
+  </widget>
+  <widget class="QLabel" name="label_show">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>9</y>
+     <width>381</width>
+     <height>351</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

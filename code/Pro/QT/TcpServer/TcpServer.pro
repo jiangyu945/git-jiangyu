@@ -29,3 +29,6 @@ SOURCES += main.cpp\
 HEADERS  += TcpServer.h
 
 FORMS    += TcpServer.ui
+
+RESOURCES += \
+    img.qrc
