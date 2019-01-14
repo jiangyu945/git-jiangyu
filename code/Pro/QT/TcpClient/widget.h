@@ -13,6 +13,7 @@
 #include <QDebug>
 
 #include <QPixmap>
+#include <QTimer>
 
 namespace Ui {
 class Widget;
@@ -42,6 +43,8 @@ private:
     Ui::Widget *ui;
     QTcpSocket *myClient;
     QByteArray array;
+    QTimer    *mytimer;
+
 
     void Init();
 };

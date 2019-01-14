@@ -26,6 +26,7 @@ void Widget::Init()
     ui->label_show->setPixmap(initImg);
 
     myClient = new QTcpSocket(this);
+    mytimer  = new QTimer(this);
 }
 /*=========================================end function===========================================*/
 
@@ -54,25 +55,37 @@ void Widget::doProcessConnected()
     ui->pushButton_connectToServer->setEnabled(false);
 }
 
-//接收数据
+//数据接收及处理
 void Widget::doProcessReadyRead()
 {
-    //接收图像数据
+
+    //清空接收缓冲区
+    array.clear();
     qDebug()<<"start to recv data...";
+
+    //接收图像数据
     while(!myClient->atEnd()){
             array.append(QByteArray(myClient->readAll()));
         }
     qDebug() << "Received img data finished,willing to show...";
 
-    //显示图像
+    //加载图像数据到img
     QImage img;
-    img.loadFromData(array,"jpg");
+    img.loadFromData(array);
     if(!img.isNull()){
         qDebug()<<"right"<<endl;
+
+        //实现显示窗口自适应主窗体大小变化
         img.scaled(ui->label_show->size(),Qt::KeepAspectRatio);
         ui->label_show->setScaledContents(true);
+
+        //显示图像
         ui->label_show->setPixmap(QPixmap::fromImage(img));
-        array.clear();
+
+        //刷新屏幕
+        mytimer->start(1);
+//        update();  //下次循环刷新
+        repaint();   //立即刷新
     }
     else {
         qDebug()<<"error"<<endl;
