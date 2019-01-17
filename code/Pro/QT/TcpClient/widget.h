@@ -15,10 +15,15 @@
 #include <QPixmap>
 #include <QTimer>
 
+#include "workerthread.h"
+
+
+//定义静态全局QByteArray数组,用来存储图像数据
+static QByteArray array;
+
 namespace Ui {
 class Widget;
 }
-
 
 class Widget : public QWidget
 {
@@ -29,7 +34,7 @@ public:
     ~Widget();
 
 signals:
-    void Sig();
+    void SigToThread(QTcpSocket* SockCli);
 
 private slots:
     void on_pushButton_connectToServer_clicked();
@@ -39,14 +44,19 @@ private slots:
 
     void on_pushButton_sendToServer_clicked();
 
+    void doProcessShow();
+
 private:
     Ui::Widget *ui;
     QTcpSocket *myClient;
-    QByteArray array;
-    QTimer    *mytimer;
+//    QByteArray array;
 
+    QTimer  *mytimer;
+
+    QThread worker;
 
     void Init();
+    void startObjthread();
 };
 
 
