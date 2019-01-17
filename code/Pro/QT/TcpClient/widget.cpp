@@ -4,6 +4,9 @@
 #include <QAbstractSocket>
 #include <QDebug>
 
+//定义QByteArray数组,用来存储图像数据
+QByteArray  array;
+
 extern QMutex myMutex;
 
 Widget::Widget(QWidget *parent) :
@@ -11,13 +14,16 @@ Widget::Widget(QWidget *parent) :
     ui(new Ui::Widget)
 {
     ui->setupUi(this);
-    qRegisterMetaType<QTcpSocket*>("QTcpSocket*"); //将参数注册为元数据类型
+    //将参数注册为元数据类型
+    qRegisterMetaType<QTcpSocket*>("QTcpSocket*");
+
     Init();
     startObjthread();
 }
 
 Widget::~Widget()
 {
+    //等待次线程的结束
     worker.quit();
     worker.wait();
     delete ui;
@@ -30,17 +36,16 @@ void Widget::Init()
     QPixmap initImg(":/img/player.png");
     initImg.scaled(ui->label_show->size(), Qt::KeepAspectRatio); //图片大小自适应label标签
     ui->label_show->setScaledContents(true);
-    ui->label_show->setPixmap(initImg);
+    ui->label_show->setPixmap(initImg);  //在label上显示图片
 
-    myClient = new QTcpSocket(this);
-    mytimer  = new QTimer(this);    
+    myClient = new QTcpSocket(this);   //资源由父对象this回收
 
 }
 
 void Widget::startObjthread(){
 
-    WorkerThread* workerObj = new WorkerThread;  //此处对象必须new出来，否则主线程信号无法传达到次线程中！原因未知
-    workerObj->moveToThread(&worker);   //移动到线程
+    WorkerThread* workerObj = new WorkerThread;  //此处对象workerObj必须new出来，否则主线程信号无法传达到次线程中！原因未知
+    workerObj->moveToThread(&worker);            //将对象移动到线程
     connect(this,SIGNAL(SigToThread(QTcpSocket*)),workerObj,SLOT(doProcessRecvData(QTcpSocket*)));
 
 
@@ -85,6 +90,7 @@ void Widget::doProcessReadyRead()
     qDebug() << "Tcp connect in Thread ID: " << QThread::currentThreadId();
 
     //发送信号到线程
+    qDebug() << "emit SigToThread(myClient)" ;
     emit SigToThread(myClient);
 }
 
@@ -98,9 +104,14 @@ void Widget::doProcessShow(){
     //加载图像数据到img
     QImage img;
     img.loadFromData(array);
+    //清空接收缓冲区
+    array.clear();
+
+    //解锁
+    myMutex.unlock();
+
     qDebug() << "Img size : " << img.byteCount() << endl;
     if(!img.isNull()){
-        qDebug()<<"right"<<endl;
 
         //实现显示窗口自适应主窗体大小变化
         img.scaled(ui->label_show->size(),Qt::KeepAspectRatio);
@@ -113,11 +124,10 @@ void Widget::doProcessShow(){
         repaint();   //update(); //下次循环才刷新
     }
     else {
-        qDebug()<<"error"<<endl;
-    }
+        qDebug()<<"img is NULL" << endl;
+    }   
 
-    //解锁
-    myMutex.unlock();
+
 
     //接收文本数据
   //    QString str,msg;

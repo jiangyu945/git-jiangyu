@@ -13,13 +13,8 @@
 #include <QDebug>
 
 #include <QPixmap>
-#include <QTimer>
 
 #include "workerthread.h"
-
-
-//定义静态全局QByteArray数组,用来存储图像数据
-static QByteArray array;
 
 namespace Ui {
 class Widget;
@@ -49,9 +44,6 @@ private slots:
 private:
     Ui::Widget *ui;
     QTcpSocket *myClient;
-//    QByteArray array;
-
-    QTimer  *mytimer;
 
     QThread worker;
 
