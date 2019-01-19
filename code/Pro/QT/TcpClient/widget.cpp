@@ -1,13 +1,13 @@
 #include "widget.h"
+#include "workerthread.h"
 #include "ui_widget.h"
-
-#include <QAbstractSocket>
-#include <QDebug>
 
 //定义QByteArray数组,用来存储图像数据
 QByteArray  array;
+QSemaphore Sem(1);  //定义只含一个信号灯的信号量
 
 extern QMutex myMutex;
+WorkerThread* workerObj = new WorkerThread;  //此处对象workerObj必须new出来，否则主线程信号无法传达到次线程中！原因未知
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -38,16 +38,17 @@ void Widget::Init()
     ui->label_show->setScaledContents(true);
     ui->label_show->setPixmap(initImg);  //在label上显示图片
 
+    //默认服务器IP、端口
+    ui->lineEdit_ServerIP->setText(QString("192.168.31.107"));
+    ui->lineEdit_ServerPort->setText(QString("8887"));
+
     myClient = new QTcpSocket(this);   //资源由父对象this回收
 
 }
 
 void Widget::startObjthread(){
-
-    WorkerThread* workerObj = new WorkerThread;  //此处对象workerObj必须new出来，否则主线程信号无法传达到次线程中！原因未知
     workerObj->moveToThread(&worker);            //将对象移动到线程
     connect(this,SIGNAL(SigToThread(QTcpSocket*)),workerObj,SLOT(doProcessRecvData(QTcpSocket*)));
-
 
     //线程结束后自动销毁
     connect(&worker,SIGNAL(finished()),workerObj,SLOT(deleteLater()));
@@ -86,31 +87,36 @@ void Widget::doProcessConnected()
 
 //数据接收
 void Widget::doProcessReadyRead()
-{
-    qDebug() << "Tcp connect in Thread ID: " << QThread::currentThreadId();
+{ 
+    Sem.acquire();  //获取二值信号量
+    qDebug() << "Sem.available(): " << Sem.available();
 
     //发送信号到线程
-    qDebug() << "emit SigToThread(myClient)" ;
+    qDebug() << "emit SigToThread(myClient)";
     emit SigToThread(myClient);
+
 }
 
 void Widget::doProcessShow(){
 
-    qDebug() << "Image show in Thread ID: " << QThread::currentThreadId() ;
-
+    qDebug() << "Showing..." << endl;
     //加锁
-    myMutex.lock();
+    QMutexLocker locker(&myMutex);
 
     //加载图像数据到img
     QImage img;
+
+    //加载方法一
     img.loadFromData(array);
+//    //加载方法二
+//    QBuffer buffer(&array);
+//    buffer.open( QIODevice::ReadOnly );
+//    QImageReader reader(&buffer);
+//    img = reader.read();
+
     //清空接收缓冲区
     array.clear();
 
-    //解锁
-    myMutex.unlock();
-
-    qDebug() << "Img size : " << img.byteCount() << endl;
     if(!img.isNull()){
 
         //实现显示窗口自适应主窗体大小变化
@@ -121,12 +127,11 @@ void Widget::doProcessShow(){
         ui->label_show->setPixmap(QPixmap::fromImage(img));
 
         //立即刷新屏幕
-        repaint();   //update(); //下次循环才刷新
+        repaint();   //update()下次循环才刷新
     }
     else {
         qDebug()<<"img is NULL" << endl;
     }   
-
 
 
     //接收文本数据

@@ -13,8 +13,12 @@
 #include <QDebug>
 
 #include <QPixmap>
+#include <QThread>
+#include <QTimer>
 
-#include "workerthread.h"
+#include <QBuffer>
+#include <QImageReader>
+#include <QSemaphore>
 
 namespace Ui {
 class Widget;
@@ -46,6 +50,7 @@ private:
     QTcpSocket *myClient;
 
     QThread worker;
+//    QTimer mytimer;
 
     void Init();
     void startObjthread();
