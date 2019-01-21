@@ -1,6 +1,7 @@
 #ifndef WORKERTHREAD_H
 #define WORKERTHREAD_H
 
+#include "widget.h"
 #include <QObject>
 
 #include <QTcpSocket>
@@ -9,10 +10,12 @@
 
 #include <QThread>
 #include <QDebug>
-#include "widget.h"
+
 #include <QMutex>
 #include <QMutexLocker>
+
 #include <QDataStream>
+#include <QByteArray>
 
 
 class WorkerThread : public QObject
@@ -20,19 +23,18 @@ class WorkerThread : public QObject
     Q_OBJECT
 public:
     explicit WorkerThread(QObject *parent = 0);
-    ~WorkerThread();
 
 signals:   
-    void SigToConnected();
-    void SigDisConnected();
-    void SigRecvFinished();
+    void SigToConnected();   //连接成功信号
+    void SigDisConnected();  //连接断开信号
+    void SigRecvFinished();  //接收完成信号
 
 public slots:    
-    void doProcessConnectToServer(QString,QString);
+    void doProcessConnectToServer(QString,QString);  //连接服务器槽
 
-    void doConnected();
-    void doDisConnected();
-    void doProcessRecvData();
+    void doConnected();       //连接成功槽
+    void doDisConnected();    //连接断开槽
+    void doProcessRecvData(); //接收完成槽
 
 private:
     QTcpSocket *myClient;

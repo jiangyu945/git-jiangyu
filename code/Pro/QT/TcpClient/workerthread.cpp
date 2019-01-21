@@ -3,18 +3,13 @@
 QMutex myMutex;
 extern  QByteArray array;
 static  QByteArray tmpArray;
-extern QSemaphore Sem;
+QSemaphore Sem(1);   //定义只含一个信号灯的二值信号量
 
 WorkerThread::WorkerThread(QObject *parent) : QObject(parent)
 {
     myClient = new QTcpSocket(this);   //资源由父对象this回收
     datasize = 0;
 }
-
-WorkerThread::~WorkerThread()
-{
-}
-
 
 //连接服务器
 void WorkerThread::doProcessConnectToServer(QString serverIP,QString serverPort)
@@ -43,10 +38,8 @@ void WorkerThread::doDisConnected(){
 void WorkerThread::doProcessRecvData(){
 
     Sem.acquire();  //获取二值信号量
-//    qDebug() << "Sem.available(): " << Sem.available();
 
-    qDebug() << "<<<<<<<<<<<<<<<<<<<Now is in doProcessRecvData thread: ";
-    //加锁,利用QMutexLocker管理会在该函数结束时自动析构解锁
+   //加锁,利用QMutexLocker管理会在该函数结束时自动析构解锁
    QMutexLocker locker(&myMutex);
 
    //首先获取图片大小
@@ -75,10 +68,10 @@ void WorkerThread::doProcessRecvData(){
       read_left = 0;
       qDebug() << "SockCli->bytesAvailable(): " << myClient->bytesAvailable();
 
-      array.append(tmpArray);
-      tmpArray.clear();
+      array.append(tmpArray);  //拷贝数据到图像存储buffer
+      tmpArray.clear();        //清除临时缓存buffer
 
-      tmpArray.append((QByteArray)myClient->readAll());
+      tmpArray.append((QByteArray)myClient->readAll());     //接收剩余的下一帧图片数据
       qDebug() << "Received finished! array.size() = " << array.size();
       qDebug() << "emit SigRecvFinished()";
       emit SigRecvFinished();
@@ -87,20 +80,5 @@ void WorkerThread::doProcessRecvData(){
    }
 
    Sem.release();  //释放信号量
-
-//    array.append((QByteArray)SockCli->readAll());
-
-//    //发射接收完成信号到主线程(需确保图片接收完整再发送信号，否则无法加载图片)
-//    if((uchar)array.at(array.size()-1) == (uchar)0xAA){
-//        qDebug() << "Received finished! array.length() = " << array.length();
-//        array.remove(array.size()-1,1);
-//        qDebug() << "Remove success! array.length() = " << array.length();
-
-//        qDebug() << "emit SigRecvFinished()";
-//        emit SigRecvFinished();
-
-//        Sem.release();  //释放信号量
-//        qDebug() << "Sem.available(): " << Sem.available();
-//    }
 }
 

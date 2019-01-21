@@ -4,7 +4,7 @@
 
 //定义QByteArray数组,用来存储图像数据
 QByteArray  array;
-QSemaphore Sem(1);  //定义只含一个信号灯的信号量
+
 
 extern QMutex myMutex;
 WorkerThread* workerObj = new WorkerThread;  //此处对象workerObj必须new出来，否则主线程信号无法传达到次线程中！原因未知
