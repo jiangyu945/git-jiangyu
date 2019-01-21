@@ -2,9 +2,6 @@
 #define WIDGET_H
 
 #include <QWidget>
-#include <QTcpSocket>
-#include <QHostAddress>
-#include <QAbstractSocket>
 
 #include <QImage>
 #include <QByteArray>
@@ -33,21 +30,20 @@ public:
     ~Widget();
 
 signals:
-    void SigToThread(QTcpSocket* SockCli);
+    void SigToConnect(QString,QString);
 
 private slots:
     void on_pushButton_connectToServer_clicked();
     void doProcessConnected();
-    void doProcessReadyRead();
     void doProcessDisconnected();
-
-    void on_pushButton_sendToServer_clicked();
 
     void doProcessShow();
 
 private:
     Ui::Widget *ui;
-    QTcpSocket *myClient;
+
+    QString serverIP;
+    QString serverPort;
 
     QThread worker;
 //    QTimer mytimer;

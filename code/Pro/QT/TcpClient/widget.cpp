@@ -42,18 +42,19 @@ void Widget::Init()
     ui->lineEdit_ServerIP->setText(QString("192.168.31.107"));
     ui->lineEdit_ServerPort->setText(QString("8887"));
 
-    myClient = new QTcpSocket(this);   //资源由父对象this回收
-
 }
 
 void Widget::startObjthread(){
     workerObj->moveToThread(&worker);            //将对象移动到线程
-    connect(this,SIGNAL(SigToThread(QTcpSocket*)),workerObj,SLOT(doProcessRecvData(QTcpSocket*)));
+    connect(this,SIGNAL(SigToConnect(QString,QString)),workerObj,SLOT(doProcessConnectToServer(QString,QString)));  //建立连接槽
+    connect(workerObj,SIGNAL(SigToConnected()),this,SLOT(doProcessConnected()));      //连接成功槽
+    connect(workerObj,SIGNAL(SigDisConnected()),this,SLOT(doProcessDisconnected()));  //连接断开槽
 
     //线程结束后自动销毁
-    connect(&worker,SIGNAL(finished()),workerObj,SLOT(deleteLater()));
+    connect(&worker,SIGNAL(finished()),workerObj,SLOT(deleteLater()));    //资源回收槽
 
-    connect(workerObj,SIGNAL(SigRecvFinished()),this,SLOT(doProcessShow()));
+    connect(workerObj,SIGNAL(SigRecvFinished()),this,SLOT(doProcessShow()));  //图像显示槽
+
 
     //启动线程
     worker.start();
@@ -66,15 +67,10 @@ void Widget::startObjthread(){
 //连接服务器
 void Widget::on_pushButton_connectToServer_clicked()
 {
-    QString serverIP = ui->lineEdit_ServerIP->text();
-    QString serverPort = ui->lineEdit_ServerPort->text();
+    serverIP = ui->lineEdit_ServerIP->text();
+    serverPort = ui->lineEdit_ServerPort->text();
 
-    myClient->connectToHost(QHostAddress(serverIP),serverPort.toUInt());
-
-    connect(myClient,SIGNAL(connected()),this,SLOT(doProcessConnected()));
-    connect(myClient,SIGNAL(readyRead()),this,SLOT(doProcessReadyRead()));
-
-    connect(myClient,SIGNAL(disconnected()),this,SLOT(doProcessDisconnected()));
+    emit SigToConnect(serverIP,serverPort);
 }
 
 //连接服务器成功
@@ -85,18 +81,7 @@ void Widget::doProcessConnected()
     ui->pushButton_connectToServer->setEnabled(false);
 }
 
-//数据接收
-void Widget::doProcessReadyRead()
-{ 
-    Sem.acquire();  //获取二值信号量
-    qDebug() << "Sem.available(): " << Sem.available();
-
-    //发送信号到线程
-    qDebug() << "emit SigToThread(myClient)";
-    emit SigToThread(myClient);
-
-}
-
+//图像显示
 void Widget::doProcessShow(){
 
     qDebug() << "Showing..." << endl;
@@ -153,14 +138,5 @@ void Widget::doProcessDisconnected(){
     ui->pushButton_connectToServer->setEnabled(true);
 }
 
-void Widget::on_pushButton_sendToServer_clicked()
-{
-    QString msg = ui->textEdit_SenBbuf->toPlainText();
-    int ret = myClient->write(msg.toUtf8());
-    if(ret <= 0){
-        return;
-    }
-    ui->textEdit_SenBbuf->clear();
-}
 
 /*===========================================end slot=============================================*/
