@@ -12,10 +12,13 @@
 #include <QPixmap>
 #include <QThread>
 #include <QTimer>
+#include <QTime>
 
 #include <QBuffer>
 #include <QImageReader>
 #include <QSemaphore>
+
+#include <QPainter>
 
 namespace Ui {
 class Widget;
@@ -46,7 +49,9 @@ private:
     QString serverPort;
 
     QThread worker;
-//    QTimer mytimer;
+    QTimer mytimer;
+    QTime  t;
+    QPainter mypainter;
 
     void Init();
     void startObjthread();

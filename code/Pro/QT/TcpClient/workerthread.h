@@ -9,6 +9,7 @@
 #include <QAbstractSocket>
 
 #include <QThread>
+#include <QTime>
 #include <QDebug>
 
 #include <QMutex>
@@ -16,7 +17,6 @@
 
 #include <QDataStream>
 #include <QByteArray>
-
 
 class WorkerThread : public QObject
 {
@@ -41,6 +41,9 @@ private:
 
     quint32 datasize;  //图片大小
     quint32 read_left; //剩余待读数据长度
+    QTime tt;
+
+
 };
 
 #endif // WORKERTHREAD_H

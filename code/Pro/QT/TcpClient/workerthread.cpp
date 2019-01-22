@@ -37,6 +37,7 @@ void WorkerThread::doDisConnected(){
 //数据接收
 void WorkerThread::doProcessRecvData(){
 
+    tt.start();
     Sem.acquire();  //获取二值信号量
 
    //加锁,利用QMutexLocker管理会在该函数结束时自动析构解锁
@@ -75,6 +76,8 @@ void WorkerThread::doProcessRecvData(){
       qDebug() << "Received finished! array.size() = " << array.size();
       qDebug() << "emit SigRecvFinished()";
       emit SigRecvFinished();
+
+      qDebug("Receive data's  Time elapsed: %d ms",tt.elapsed());  //打印耗时
 
       datasize = 0;
    }

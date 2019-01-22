@@ -54,6 +54,7 @@ void Widget::startObjthread(){
     connect(&worker,SIGNAL(finished()),workerObj,SLOT(deleteLater()));    //资源回收槽
 
     connect(workerObj,SIGNAL(SigRecvFinished()),this,SLOT(doProcessShow()));  //图像显示槽
+//    connect(&mytimer,SIGNAL(timeout()),this,SLOT(repaint()));                 //定时刷新屏幕，若为update()则下次循环才刷新
 
 
     //启动线程
@@ -84,6 +85,7 @@ void Widget::doProcessConnected()
 //图像显示
 void Widget::doProcessShow(){
 
+    t.start();
     qDebug() << "Showing..." << endl;
     //加锁
     QMutexLocker locker(&myMutex);
@@ -112,7 +114,13 @@ void Widget::doProcessShow(){
         ui->label_show->setPixmap(QPixmap::fromImage(img));
 
         //立即刷新屏幕
-        repaint();   //update()下次循环才刷新
+        repaint();
+
+        //开启定时器，超时刷新屏幕
+//        mytimer.start(33);
+        qDebug("Time elapsed: %d ms",t.elapsed());  //打印耗时
+
+
     }
     else {
         qDebug()<<"img is NULL" << endl;
